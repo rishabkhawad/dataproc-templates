@@ -323,6 +323,14 @@ BQ_GCS_OUTPUT_FORMAT = "bigquery.gcs.output.format"
 BQ_GCS_OUTPUT_MODE = "bigquery.gcs.output.mode"
 BQ_GCS_OUTPUT_LOCATION = "bigquery.gcs.output.location"
 
+# BigQuery to Bigquery
+BQ_BQ_INPUT_DATASET = "bigquery.bigquery.input.dataset"
+BQ_BQ_INPUT_TABLE = "bigquery.bigquery.input.table"
+BQ_BQ_OUTPUT_DATASET = "bigquery.bigquery.output.dataset"
+BQ_BQ_OUTPUT_TABLE = "bigquery.bigquery.output.table"
+BQ_BQ_LD_TEMP_BUCKET_NAME = "bigquery.bigquery.temp.bucket.name"
+BQ_BQ_OUTPUT_MODE = "bigquery.bigquery.output.mode"
+
 # GCS To GCS with transformations
 GCS_TO_GCS_INPUT_LOCATION = "gcs.to.gcs.input.location"
 GCS_TO_GCS_INPUT_FORMAT = "gcs.to.gcs.input.format"
