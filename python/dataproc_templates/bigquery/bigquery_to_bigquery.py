@@ -23,7 +23,7 @@ from dataproc_templates import BaseTemplate
 from dataproc_templates.util.argument_parsing import add_spark_options
 from dataproc_templates.util.dataframe_reader_wrappers import ingest_dataframe_from_cloud_storage
 import dataproc_templates.util.template_constants as constants
-
+import domain
 
 __all__ = ['BigqueryToBigQueryTemplate']
 
