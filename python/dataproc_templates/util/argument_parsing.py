@@ -18,10 +18,32 @@ import argparse
 import dataproc_templates.util.template_constants as constants
 from dataproc_templates import TemplateName
 
+def get_module_name(args: Optional[Sequence[str]] = None) -> str:
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        add_help=False
+    )
+
+    parser.add_argument(
+        '--module',
+        dest='module',
+        type=str,
+        required=True,
+        default=None,
+        help='The name of the module to run transformation'
+    )
+
+    known_args: argparse.Namespace
+    known_args, _ = parser.parse_known_args(args=args)
+
+    if known_args.module is None:
+        parser.print_help()
+        parser.exit()
+
+    return str(known_args.module)
 
 def get_template_name(args: Optional[Sequence[str]] = None) -> TemplateName:
     """
-    Parses the template name option from the program arguments.
+    Parses the template name option from the program arguments. 
 
     This will print the command help and exit if the --template
     argument is missing.

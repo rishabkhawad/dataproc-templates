@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import abstractclassmethod, abstractmethod
 from typing import Dict, Sequence, Optional, Any
 from logging import Logger
 import argparse
 import pprint
 
 from pyspark.sql import SparkSession
+from pyspark.sql.dataframe import DataFrame
 
 from dataproc_templates import BaseTemplate
 from dataproc_templates.util.argument_parsing import add_spark_options
@@ -67,24 +69,6 @@ class BigqueryToBigQueryTemplate(BaseTemplate):
             help='BigQuery output table name'
         )
 
-
-        # parser.add_argument(
-        #     f'--{constants.BQ_BQ_INPUT_FORMAT}',
-        #     dest=constants.BQ_BQ_INPUT_FORMAT,
-        #     required=True,
-        #     help='Input file format (one of: avro,parquet,csv,json,delta)',
-        #     choices=[
-        #         constants.FORMAT_AVRO,
-        #         constants.FORMAT_PRQT,
-        #         constants.FORMAT_CSV,
-        #         constants.FORMAT_JSON,
-        #         constants.FORMAT_DELTA
-        #     ]
-        # )
-
-        add_spark_options(parser, constants.get_csv_input_spark_options("gcs.bigquery.input."))
-
-
         parser.add_argument(
             f'--{constants.BQ_BQ_OUTPUT_MODE}',
             dest=constants.BQ_BQ_OUTPUT_MODE,
@@ -115,6 +99,16 @@ class BigqueryToBigQueryTemplate(BaseTemplate):
 
         return vars(known_args)
 
+    @abstractmethod
+    def execute(spark: SparkSession, df: DataFrame):
+        """
+        Implementations of this method should execute the modules specific transformations.
+
+        Args:
+           spark: SparkSession
+           df: pyspark.sql.dataframe.DataFrame
+        """
+
     def run(self, spark: SparkSession, args: Dict[str, Any]) -> None:
 
         logger: Logger = self.get_logger(spark=spark)
@@ -137,16 +131,19 @@ class BigqueryToBigQueryTemplate(BaseTemplate):
             .option(constants.TABLE, input_dataset + "." + input_table) \
             .load()
         sql_query = True
-        # Transformation 
+       
+       
+        # Transformation
+        output_data = self.execute(spark, input_data)
 
-        if True or sql_query:
-            # Create temp view on source data
-            input_data.createOrReplaceTempView("demo")
-            # Execute SQL
-            output_data = spark.sql("SELECT *, CONCAT(name, ' is ', age, ' years old') AS concat_col FROM demo")
-            # output_data = spark.sql(sql_query)
-        else:
-            output_data = input_data
+        # if True or sql_query:
+        #     # Create temp view on source data
+        #     input_data.createOrReplaceTempView("demo")
+        #     # Execute SQL
+        #     output_data = spark.sql("SELECT *, CONCAT(name, ' is ', age, ' years old') AS concat_col FROM demo")
+        #     # output_data = spark.sql(sql_query)
+        # else:
+        #     output_data = input_data
 
         # Write
         output_data.write \

@@ -21,13 +21,13 @@ from pyspark.sql import SparkSession
 from dataproc_templates import BaseTemplate, TemplateName
 from dataproc_templates.gcs.gcs_to_jdbc import GCSToJDBCTemplate
 from dataproc_templates.mongo.mongo_to_gcs import MongoToGCSTemplate
-from dataproc_templates.util import get_template_name, get_log_level, track_template_invocation
+from dataproc_templates.util import get_module_name, get_template_name, get_log_level, track_template_invocation
 from dataproc_templates.gcs.gcs_to_bigquery import GCSToBigQueryTemplate
 from dataproc_templates.gcs.gcs_to_gcs import GCSToGCSTemplate
 from dataproc_templates.gcs.gcs_to_mongo import GCSToMONGOTemplate
 from dataproc_templates.gcs.gcs_to_bigtable import GCSToBigTableTemplate
 from dataproc_templates.bigquery.bigquery_to_gcs import BigQueryToGCSTemplate
-from dataproc_templates.bigquery.bigquery_to_bigquery import BigqueryToBigQueryTemplate
+from dataproc_templates.bigquery.transformations.finance import Finance
 from dataproc_templates.hive.hive_to_bigquery import HiveToBigQueryTemplate
 from dataproc_templates.hive.hive_to_gcs import HiveToGCSTemplate
 from dataproc_templates.gcs.text_to_bigquery import TextToBigQueryTemplate
@@ -52,33 +52,9 @@ LOGGER: logging.Logger = logging.getLogger('dataproc_templates')
 # Maps each TemplateName to its corresponding implementation
 # of BaseTemplate
 TEMPLATE_IMPLS: Dict[TemplateName, Type[BaseTemplate]] = {
-    TemplateName.GCSTOBIGQUERY: GCSToBigQueryTemplate,
-    TemplateName.GCSTOGCS: GCSToGCSTemplate,
-    TemplateName.GCSTOBIGTABLE: GCSToBigTableTemplate,
-    TemplateName.BIGQUERYTOGCS: BigQueryToGCSTemplate,
-    TemplateName.BIGQUERYTOBIGQUERY: BigqueryToBigQueryTemplate,
-    TemplateName.HIVETOBIGQUERY: HiveToBigQueryTemplate,
-    TemplateName.HIVETOGCS: HiveToGCSTemplate,
-    TemplateName.TEXTTOBIGQUERY: TextToBigQueryTemplate,
-    TemplateName.GCSTOJDBC: GCSToJDBCTemplate,
-    TemplateName.GCSTOMONGO: GCSToMONGOTemplate,
-    TemplateName.HBASETOGCS: HbaseToGCSTemplate,
-    TemplateName.JDBCTOJDBC: JDBCToJDBCTemplate,
-    TemplateName.JDBCTOGCS: JDBCToGCSTemplate,
-    TemplateName.JDBCTOBIGQUERY: JDBCToBigQueryTemplate,
-    TemplateName.MONGOTOGCS: MongoToGCSTemplate,
-    TemplateName.SNOWFLAKETOGCS: SnowflakeToGCSTemplate,
-    TemplateName.REDSHIFTTOGCS: RedshiftToGCSTemplate,
-    TemplateName.CASSANDRATOBQ: CassandraToBQTemplate,
-    TemplateName.AZUREBLOBSTORAGETOBQ: AzureBlobStorageToBigQueryTemplate,
-    TemplateName.CASSANDRATOGCS: CassandraToGCSTemplate,
-    TemplateName.HIVEDDLEXTRACTOR: HiveDDLExtractorTemplate,
-    TemplateName.KAFKATOGCS: KafkaToGCSTemplate,
-    TemplateName.KAFKATOBQ: KafkaToBigQueryTemplate,
-    TemplateName.S3TOBIGQUERY: S3ToBigQueryTemplate,
-    TemplateName.PUBSUBLITETOGCS: PubSubLiteToGCSTemplate,
-    TemplateName.PUBSUBLITETOBIGTABLE: PubSubLiteToBigtableTemplate
-
+    TemplateName.BIGQUERYTOBIGQUERY: {
+        "finance": Finance
+    }
 }
 
 def create_spark_session(template_name: TemplateName) -> SparkSession:
@@ -110,7 +86,7 @@ def create_spark_session(template_name: TemplateName) -> SparkSession:
 
     return spark
 
-def run_template(template_name: TemplateName) -> None:
+def run_template(template_name: TemplateName, module: str) -> None:
     """
     Executes a template given it's template name.
 
@@ -126,7 +102,7 @@ def run_template(template_name: TemplateName) -> None:
 
     template_impl: Type[BaseTemplate] = TEMPLATE_IMPLS[template_name]
 
-    template_instance: BaseTemplate = template_impl.build()
+    template_instance: BaseTemplate = template_impl[module].build()
 
     try:
         args: Dict[str, Any] = template_instance.parse_args()
@@ -147,5 +123,6 @@ def run_template(template_name: TemplateName) -> None:
 if __name__ == '__main__':
 
     run_template(
-        template_name=get_template_name()
+        template_name=get_template_name(),
+        module=get_module_name()
     )
